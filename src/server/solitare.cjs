@@ -105,7 +105,7 @@ const filterGameForProfile = (game) => ({
   game: "klondyke",
   start: game.start,
   state: game.state,
-  moves: game.moves,
+  numMoves: game.moves.length,
   winner: game.winner,
   drawCount: game.drawCount
 });
@@ -114,16 +114,16 @@ const filterMoveForResults = (move) => ({
   ...move,
 });
 
-const isValid = (suit, value, dst) => {
+const isValid = (suit, value, dstName, dst) => {
   if (dst.length === 0) {
-    if (dst.indexOf("pile") !== -1)
+    if (dstName.indexOf("pile") !== -1)
       return value === 'king';
     else {
       return value === "ace";
     }
   } else {
     let top = dst[dst.length - 1];
-    if (top.value !== validPileMoves[value]){
+    if (top.value !== validPileMoves[value]) {
       return false;
     } else if ((suit === 'spades' || suit === 'clubs') && (top.suit === 'spades' || top.suit === 'clubs')){
       return false;
@@ -142,6 +142,10 @@ const validateMove = (state, request, drawCount) => {
 
   const srcPile = state[request.src];
   const dstPile = state[request.dst];
+
+  // if (request.moveType !== undefined) {
+  //   return {state: state};
+  // }
 
   if (request.src === 'draw') {
     if (request.dst !== 'discard') {
@@ -190,7 +194,7 @@ const validateMove = (state, request, drawCount) => {
 
   else if (request.dst.indexOf('pile') !== -1) { // destination is pile
 
-    if (!isValid(reqSuit, reqVal, dstPile)) {
+    if (!isValid(reqSuit, reqVal, request.dst, dstPile)) {
       return {error: 'card does not have alternating color and consecutive number'};
     }
     if (request.src.indexOf('pile') !== -1) {   // pile to pile

@@ -43,6 +43,7 @@ module.exports = (app) => {
         start: Date.now(),
         winner: "",
         state: [],
+        moves: []
       };
       switch (data.draw) {
         case "Draw 1":
@@ -67,7 +68,6 @@ module.exports = (app) => {
       } catch (err) {
         console.log(`Game.create save failure: ${err}`);
         res.status(400).send({ error: "failure creating game" });
-        // TODO: Much more error management needs to happen here
       }
     } catch (err) {
       console.log(err);
@@ -85,7 +85,7 @@ module.exports = (app) => {
    */
   app.get("/v1/game/:id", async (req, res) => {
     try {
-      let game = await app.models.Game.findById(req.params.id);
+      let game = await app.models.Game.findById(req.params.id).populate("moves").exec();
       if (!game) {
         res.status(404).send({ error: `unknown game: ${req.params.id}` });
       } else {
@@ -100,7 +100,22 @@ module.exports = (app) => {
             state.stack4.length);
         // Do we need to grab the moves
         if (req.query.moves === "") {
-          const moves = await app.models.Move.find({ game: req.params.id });
+          const moves = game.moves;
+          let usr = await app.models.User.findById(moves[0].user);
+          moves.map((move) => {
+            move.player = usr.username;
+            let srcCard = `${move.cards[0].value} of ${move.cards[0].suit}`
+            let dstPile = ``
+            if (move.dst.indexOf("stack") !== -1) {
+              dstPile = `F${move.dst.slice(-1)}`
+            } else if (move.dst.indexOf("pile") !== -1) {
+              dstPile = `T${move.dst.slice(-1)}`
+            } else {
+              dstPile = move.dst
+            }
+            move.move = `${srcCard} to ${dstPile}`
+            move.date = Date.parse(move.date);
+          });
           state.moves = moves.map((move) => filterMoveForResults(move));
         }
         res.status(200).send(Object.assign({}, results, state));
@@ -111,18 +126,30 @@ module.exports = (app) => {
     }
   });
 
-  app.put("/v1/game/:gameID", async (req, res) => {
-    if (!req.session.user) {
+  
+  app.put("/v1/game/:id", async (req, res) => {
+    if (req.body.player === "") {   // don't want to get logged out mid-game
       return res.status(401).send({ error: "unauthorized: not logged in" });
     }
 
-    let currentGame = await app.models.Game.findById(req.params.gameID);
+    let currentGame = await app.models.Game.findById(req.params.id).populate("owner").populate("state").exec();
     if (!currentGame) {
-      return res.status(404).send({ error: `unknown game: ${req.params.gameID}` });
-    } else if (!currentGame.owner.equals(req.session.user._id)) {
-      return res.status(401).send({ error: "unauthorized: not game owner" });
+      return res.status(404).send({ error: `unknown game: ${req.params.id}` });
+    // } else if (!currentGame.owner.equals(req.session.user._id)) {
+    } else if (currentGame.owner.username !== req.body.player) {
+      return res.status(401).send({ error: `unauthorized: not game owner, owner.username=${currentGame.owner.username}, player=${req.body.player}` });
     }
     let newState = currentGame.state.toJSON();
+
+    if (req.body.active !== undefined) {
+      currentGame.active = req.body.active;
+      currentGame.end = Date.now();
+      if (req.body.winner !== undefined) {
+        currentGame.winner = req.body.winner;
+      }
+      await currentGame.save();
+      return res.status(200).send(currentGame);
+    }
 
     if (req.body.src === "discard" && req.body.dst === "draw" && newState.draw.length === 0) {
       if (newState.discard.length !== 0) {
@@ -133,16 +160,23 @@ module.exports = (app) => {
         }
 
         let newMove = {
-          user: req.session.user._id,
-          game: req.params.gameID,
+          user: currentGame.owner._id,
           cards: req.body.cards,
           src: req.body.src,
           dst: req.body.dst,
+          player: currentGame.owner.username
         }
 
         let move = new app.models.Move(newMove);
 
-        currentGame.moves += 1;
+        try {
+          await move.save();
+
+        } catch (err) {
+          console.log("Move.create failed");
+        }
+
+        currentGame.moves.push(move._id);
         currentGame.state = newState;
         await currentGame.save();
         return res.status(200).send(newState);
@@ -156,34 +190,49 @@ module.exports = (app) => {
 
     const validState = validateMove(newState, req.body, currentGame.drawCount);
     if (validState.error !== undefined) {
-      return res.status(400).send({error: validState.error});
+      if (req.body.moveType === undefined) {
+        return res.status(400).send({error: validState.error});
+      }
+      return res.status(400).send();
     } else if (validState.drawCards !== undefined) {
       let newMove = {
-        user: req.session.user._id,
-        game: req.params.gameID,
+        user: currentGame.owner._id,
         cards: req.body.cards,
         src: req.body.src,
         dst: req.body.dst,
       }
 
       let move = new app.models.Move(newMove);
+
+      try {
+        await move.save();
+      } catch (err) {
+        console.log("Move.create failed");
+      }
+
       currentGame.state = validState.state;
-      currentGame.moves += 1;
+      currentGame.moves.push(move._id);
       await currentGame.save();
       return res.status(200).send({state: validState.state, drawCards: validState.drawCards});
     } else {
 
       let newMove = {
-        user: req.session.user._id,
-        game: req.params.gameID,
+        user: currentGame.owner._id,
         cards: req.body.cards,
         src: req.body.src,
         dst: req.body.dst,
       }
 
       let move = new app.models.Move(newMove);
+
+      try {
+        await move.save();
+      } catch (err) {
+        console.log("Move.create failed");
+      }
+      
       currentGame.state = validState;
-      currentGame.moves += 1;
+      currentGame.moves.push(move._id);
       await currentGame.save();
       return res.status(200).send(validState);
     }

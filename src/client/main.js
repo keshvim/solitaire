@@ -15,6 +15,7 @@ import { Profile } from "./components/profile.js";
 import { Start } from "./components/start.js";
 import { Results } from "./components/results.js";
 import { Game } from "./components/game.js";
+import { Edit } from "./components/edit.js";
 
 const defaultUser = {
   username: "",
@@ -97,9 +98,11 @@ const MyApp = () => {
   };
 
   // Helper for when a user logs out
-  const logOut = () => {
+  const logOut = async () => {
     // Wipe localStorage
     localStorage.removeItem("user");
+    //  Log user out on server side 
+    await fetch("/v1/session", { method: "DELETE" });
     // Reset user state
     setState(defaultUser);
   };
@@ -121,6 +124,10 @@ const MyApp = () => {
           <Route
             path="/profile/:username"
             element={<Profile currentUser={state.username} />}
+          />
+          <Route
+            path="/edit"
+            element={<Edit currentUser={state} logIn={logIn} />}
           />
           <Route
             path="/start"

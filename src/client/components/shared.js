@@ -48,12 +48,13 @@ const NotifyBox = styled.div`
   background: #fff;
 `;
 
-export const ModalNotify = ({ msg = "", onAccept, ...props }) => {
+export const ModalNotify = ({ msg = "", onAccept, onCancel, ...props }) => {
   return (
     <NotifyBase {...props}>
       <NotifyBox>
         <p>{msg}</p>
         {onAccept ? <FormButton onClick={onAccept}>Ok</FormButton> : null}
+        {onCancel ? <FormButton onClick={onAccept}>No Thanks</FormButton> : null}
       </NotifyBox>
     </NotifyBase>
   );

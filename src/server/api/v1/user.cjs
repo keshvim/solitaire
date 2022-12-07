@@ -122,7 +122,7 @@ module.exports = (app) => {
    * @param {req.body.city} City user lives in - optional
    * @return {204, no body content} Return status only
    */
-  app.put("/v1/user", async (req, res) => {
+  app.put("/v1/user/:id", async (req, res) => {
     if (!req.session.user)
       return res.status(401).send({ error: "unauthorized" });
 

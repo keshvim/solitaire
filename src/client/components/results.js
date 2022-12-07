@@ -7,12 +7,11 @@ import styled from "styled-components";
 import PropTypes from "prop-types";
 import { ErrorMessage, InfoBlock, InfoData, InfoLabels } from "./shared.js";
 
-const Move = ({ move, index }) => {
-  const duration = Date.now() - move.date;
+const Move = ({ move, index, dur }) => {
   return (
     <tr>
       <th>{move.id ? move.id : index + 1}</th>
-      <th>{duration} seconds</th>
+      <th>{dur} s</th>
       <th>
         <Link to={`/profile/${move.player}`}>{move.player}</Link>
       </th>
@@ -40,9 +39,9 @@ const MovesListTable = styled.table`
   }
 `;
 
-const MovesList = ({ moves }) => {
+const MovesList = ({ moves, start }) => {
   let moveElements = moves.map((move, index) => (
-    <Move key={index} move={move} index={index} />
+    <Move index={index} move={move} dur={(Date.now() - start) / 1000} />
   ));
   return (
     <MovesListTable>
@@ -103,12 +102,12 @@ export const Results = () => {
     score: 0,
     cards_remaining: 0,
     active: true,
-    moves: 0,
+    moves: [],
   });
   let [error, setError] = useState("");
   // Fetch data on load
   useEffect(() => {
-    fetch(`/v1/game/${id}`)
+    fetch(`/v1/game/${id}?moves=`)
       .then((res) => res.json())
       .then((data) => {
         setGame(data);
@@ -124,7 +123,7 @@ export const Results = () => {
       {typeof game.moves === "number" ? (
         <div>No Moves</div>
       ) : (
-        <MovesList moves={game.moves} />
+        <MovesList moves={game.moves} start={game.start} />
       )}
     </ResultsBase>
   );

@@ -42,8 +42,8 @@ let Game = new Schema({
   color: { type: String, default: "red" },
   drawCount: { type: Number, default: 1 },
   score: { type: Number, default: 0 },
-  won: { type: Boolean, default: false },
-  moves: { type: Number, default: 0 }
+  winner: { type: String, default: "" },
+  moves: [{ type: Schema.ObjectId, ref: "Move" }]
 });
 
 Game.pre("validate", function(next) {

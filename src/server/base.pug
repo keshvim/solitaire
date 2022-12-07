@@ -3,7 +3,7 @@ html(lang="en")
         meta(charset="utf-8")
         meta(http-equiv="X-UA-Compatible", content="IE=edge")
         meta(name="viewport", content="width=device-width, initial-scale=1")
-        title Graham's Solitaire Application
+        title Klondike Mania
         style(type="text/css").
             body {
                 color: #606c76;
@@ -17,6 +17,17 @@ html(lang="en")
 
             #mainDiv {
                 width: 100%;
+                height: 100%;
+            }
+
+            tr.table-row:hover {
+                background-color: rgba(0,0,0,0.3);
+                color: black !important;
+            }
+
+            table thead th {
+                background-color: rgba(0,0,0,0.95);
+                color: white;
             }
     body.container-fluid
         div#mainDiv

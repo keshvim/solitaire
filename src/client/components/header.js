@@ -17,18 +17,20 @@ export function GravHash(email, size) {
   return `https://www.gravatar.com/avatar/${hash}?size=${size}`;
 }
 
-const fontColor = "#c4a1a1";
+const fontColor = "#eee";
+// #c4a1a1
 
 const HeaderLeftBase = styled.div`
   flex-grow: 1;
-  font-style: italic;
-  & > h2 {
+  // font-style: italic;
+  font-weight: bold;
+  & > h1 {
     color: ${fontColor};
     margin: 0.75em 0 0.75em 0.5em;
   }
   & > a {
     text-decoration: none;
-    & > h2 {
+    & > h1 {
       color: ${fontColor};
       margin: 0.75em 0 0.75em 0.5em;
     }
@@ -40,10 +42,10 @@ const HeaderLeft = ({ user }) => {
     <HeaderLeftBase>
       {user !== "" ? (
         <Link to={`/profile/${user}`}>
-          <h2>GrahamCard</h2>
+          <h1>KlondikeMania</h1>
         </Link>
       ) : (
-        <h2>GrahamCard</h2>
+        <h1>KlondikeMania</h1>
       )}
     </HeaderLeftBase>
   );
@@ -64,6 +66,7 @@ const HeaderRightBase = styled.div`
   & > a {
     color: ${fontColor};
     padding-right: ${(props) => (props.vertical ? "0.5em" : "0")};
+    font-weight: bold;
   }
 `;
 

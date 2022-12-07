@@ -94,7 +94,7 @@ const setupServer = async () => {
     };
     // Listen for HTTPS requests
     server = https.createServer(options, app).listen(port, () => {
-      console.log(`Secure Assignment 4 listening on: ${server.address().port}`);
+      console.log(`Secure KlondikeMania listening on: ${server.address().port}`);
     });
     // Redirect HTTP to HTTPS
     http
@@ -105,11 +105,11 @@ const setupServer = async () => {
         res.end();
       })
       .listen(80, () => {
-        console.log(`Assignment 4 listening on 80 for HTTPS redirect`);
+        console.log(`KlondikeMania listening on 80 for HTTPS redirect`);
       });
   } else {
     server = app.listen(port, () => {
-      console.log(`Assignment 5 ${env} listening on: ${server.address().port}`);
+      console.log(`KlondikeMania ${env} listening on: ${server.address().port}`);
     });
   }
 };

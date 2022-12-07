@@ -8,20 +8,16 @@ const CardState = require("./card_state.cjs");
 /***************** Move Model *******************/
 
 /* Schema for an individual move of Klondike */
-let Move = new Schema(
-  {
+let Move = new Schema({
     user: { type: Schema.ObjectId, ref: "User", required: true, index: true },
-    game: { type: Schema.ObjectId, ref: "Game", required: true, index: true },
     cards: { type: [CardState] },
     src: { type: String },
     dst: { type: String },
     date: { type: Date }
-  },
-  { _id: false }
-);
+  });
 
 Move.pre("validate", function(next) {
-  this.start = Date.now();
+  this.date = Date.now();
   next();
 });
 
