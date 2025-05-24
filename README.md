@@ -1,6 +1,6 @@
 # KlondikeMania
 ## Description
-This is a full-stack web application for playing klondike solitaire games.
+This is a full-stack web application for playing klondike solitaire games. (NOTE: Taken down due to not being able to pay for the domain; will be re-deployed in the near future)
 
 ## Tech Stack
 ### Frontend
